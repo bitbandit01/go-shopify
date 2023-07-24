@@ -9,17 +9,18 @@ import (
 // of the Shopify API.
 // https://shopify.dev/docs/api/admin-rest/2023-07/resources/fulfillment
 type FulfillmentService interface {
-	Create(FulfillmentRequest) (*Fulfillment, error)
+	Create(FulfillmentRequestData) (*Fulfillment, error)
 }
 
 // FulfillmentsService is an interface for other Shopify resources
 // to interface with the fulfillment endpoints of the Shopify API.
 // https://shopify.dev/docs/api/admin-rest/2023-07/resources/fulfillment
 type FulfillmentsService interface {
+	CreateFulfillment(FulfillmentRequestData) (*Fulfillment, error)
+
 	ListFulfillments(int64, interface{}) ([]Fulfillment, error)
 	CountFulfillments(int64, interface{}) (int, error)
 	GetFulfillment(int64, int64, interface{}) (*Fulfillment, error)
-	CreateFulfillment(int64, Fulfillment) (*Fulfillment, error)
 	UpdateFulfillment(int64, Fulfillment) (*Fulfillment, error)
 	CompleteFulfillment(int64, int64) (*Fulfillment, error)
 	TransitionFulfillment(int64, int64) (*Fulfillment, error)
