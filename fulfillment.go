@@ -7,21 +7,14 @@ import (
 
 // FulfillmentService is an interface for interfacing with the fulfillment endpoints
 // of the Shopify API.
-// https://help.shopify.com/api/reference/fulfillment
+// https://shopify.dev/docs/api/admin-rest/2023-07/resources/fulfillment
 type FulfillmentService interface {
-	List(interface{}) ([]Fulfillment, error)
-	Count(interface{}) (int, error)
-	Get(int64, interface{}) (*Fulfillment, error)
-	Create(Fulfillment) (*Fulfillment, error)
-	Update(Fulfillment) (*Fulfillment, error)
-	Complete(int64) (*Fulfillment, error)
-	Transition(int64) (*Fulfillment, error)
-	Cancel(int64) (*Fulfillment, error)
+	Create(FulfillmentRequest) (*Fulfillment, error)
 }
 
 // FulfillmentsService is an interface for other Shopify resources
 // to interface with the fulfillment endpoints of the Shopify API.
-// https://help.shopify.com/api/reference/fulfillment
+// https://shopify.dev/docs/api/admin-rest/2023-07/resources/fulfillment
 type FulfillmentsService interface {
 	ListFulfillments(int64, interface{}) ([]Fulfillment, error)
 	CountFulfillments(int64, interface{}) (int, error)
@@ -39,6 +32,44 @@ type FulfillmentServiceOp struct {
 	client     *Client
 	resource   string
 	resourceID int64
+}
+
+// FulfillmentRequest represents a request to fulfill a FulfillmentOrder
+type FulfillmentRequest struct {
+	Fulfillment *FulfillmentRequestData `json:"fulfillment"`
+}
+
+type FulfillmentRequestData struct {
+	LineItemsByFulfillmentOrder []LineItemsByFulfillmentOrder `json:"line_items_by_fulfillment_order"`
+	Message                     string                        `json:"message,omitempty"`
+	NotifyCustomer              bool                          `json:"notify_customer,omitempty"`
+	OriginAddress               OriginAddress                 `json:"origin_address,omitempty"`
+	TrackingInfo                TrackingInfo                  `json:"tracking_info,omitempty"`
+}
+
+type LineItemsByFulfillmentOrder struct {
+	ID        int64                 `json:"fulfillment_order_id"`
+	LineItems []FulfillmentLineItem `json:"fulfillment_order_line_items,omitempty"`
+}
+
+type FulfillmentLineItem struct {
+	ID  int64 `json:"id"`
+	Qty int   `json:"qty"`
+}
+
+type OriginAddress struct {
+	Address1     string `json:"address1,omitempty"`
+	Address2     string `json:"address2,omitempty"`
+	City         string `json:"city,omitempty"`
+	CountryCode  string `json:"country_code"`
+	ProvinceCode string `json:"province_code,omitempty"`
+	Zip          string `json:"zip,omitempty"`
+}
+
+type TrackingInfo struct {
+	Company string `json:"company,omitempty"`
+	Number  string `json:"number,omitempty"`
+	URL     string `json:"url,omitempty"`
 }
 
 // Fulfillment represents a Shopify fulfillment.
@@ -103,10 +134,10 @@ func (s *FulfillmentServiceOp) Get(fulfillmentID int64, options interface{}) (*F
 }
 
 // Create a new fulfillment
-func (s *FulfillmentServiceOp) Create(fulfillment Fulfillment) (*Fulfillment, error) {
+func (s *FulfillmentServiceOp) Create(fulfillment FulfillmentRequestData) (*Fulfillment, error) {
 	prefix := FulfillmentPathPrefix(s.resource, s.resourceID)
 	path := fmt.Sprintf("%s.json", prefix)
-	wrappedData := FulfillmentResource{Fulfillment: &fulfillment}
+	wrappedData := FulfillmentRequest{Fulfillment: &fulfillment}
 	resource := new(FulfillmentResource)
 	err := s.client.Post(path, wrappedData, resource)
 	return resource.Fulfillment, err
