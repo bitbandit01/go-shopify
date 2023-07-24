@@ -1,4 +1,4 @@
-module github.com/krisatverbidio/go-shopify/v3
+module github.com/bitbandit01/go-shopify
 
 go 1.13
 
